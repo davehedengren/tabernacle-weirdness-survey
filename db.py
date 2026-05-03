@@ -36,7 +36,9 @@ def get_items():
     conn = get_conn()
     try:
         rows = conn.execute(
-            'SELECT id, title, scripture_ref, scripture_text, meaning, image_url, display_order '
+            'SELECT id, title, scripture_ref, scripture_text, '
+            'context_scripture_ref, context_scripture_text, '
+            'meaning, image_url, display_order '
             'FROM items ORDER BY display_order ASC'
         ).fetchall()
         return [dict(r) for r in rows]

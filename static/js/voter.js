@@ -11,20 +11,12 @@
   const itemTpl = document.getElementById('item-template');
   const doneTpl = document.getElementById('done-template');
 
-  // Track which item+phase the voter has just locally voted on, so we can
-  // show "✓ Voted X" without round-tripping. Keyed by `${phase}:${itemId}`.
   const localVotes = {};
-
-  // Last rendered (phase, itemId) so we don't redraw every poll.
   let renderedKey = null;
 
   function bannerText(phase, idx, total) {
-    if (phase === 'round1') {
-      return `Round 1 — first impressions  ·  Item ${idx} of ${total}`;
-    }
-    if (phase === 'round2') {
-      return `Round 2 — after the meaning  ·  Item ${idx} of ${total}`;
-    }
+    if (phase === 'round1') return `Round 1 · ${idx} of ${total}`;
+    if (phase === 'round2') return `Round 2 · ${idx} of ${total}`;
     return 'Voting complete';
   }
 
@@ -40,23 +32,28 @@
     article.dataset.itemId = item.id;
     article.dataset.phase = phase;
 
-    node.querySelector('.item-progress').textContent =
-      `${phase === 'round1' ? 'Round 1' : 'Round 2'} — Item ${idx} of ${total}`;
     node.querySelector('.item-title').textContent = item.title;
     const img = node.querySelector('.item-image');
     if (item.image_url) {
       img.src = item.image_url;
       img.alt = item.title;
     } else {
-      img.remove();
+      node.querySelector('.item-figure').remove();
     }
     node.querySelector('.scripture-ref').textContent = item.scripture_ref;
     node.querySelector('.scripture-text').textContent = item.scripture_text;
 
-    const meaningBlock = node.querySelector('.meaning-block');
-    if (phase === 'round2' && item.meaning) {
-      meaningBlock.hidden = false;
-      node.querySelector('.meaning').textContent = item.meaning;
+    if (phase === 'round2' && (item.context_scripture_text || item.meaning)) {
+      const ctx = node.querySelector('.context-block');
+      ctx.hidden = false;
+      node.querySelector('.context-ref').textContent = item.context_scripture_ref || '';
+      node.querySelector('.context-text').textContent = item.context_scripture_text || '';
+      const meaningLine = node.querySelector('.meaning-line');
+      if (item.meaning) {
+        meaningLine.textContent = item.meaning;
+      } else {
+        meaningLine.remove();
+      }
     }
 
     const buttons = node.querySelectorAll('.rating-btn');
@@ -75,7 +72,7 @@
     const status = article.querySelector('.vote-status');
     if (rating) {
       status.hidden = false;
-      status.textContent = `✓ You voted ${rating}. Tap a different number to change. Waiting for the next item...`;
+      status.textContent = `Voted ${rating}. Tap a different number to change.`;
     } else {
       status.hidden = true;
     }
@@ -115,8 +112,10 @@
 
       const item = state.current_item;
       if (!item) {
-        container.innerHTML = '<p class="loading">Waiting for the teacher...</p>';
-        renderedKey = 'waiting';
+        if (renderedKey !== 'waiting') {
+          renderedKey = 'waiting';
+          if (container) container.innerHTML = '<p class="loading">Waiting for the teacher…</p>';
+        }
         return;
       }
       const key = `${state.phase}:${item.id}`;

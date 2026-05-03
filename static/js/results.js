@@ -6,13 +6,23 @@
   }
 
   function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, (c) => ({
+    return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     }[c]));
   }
 
   function findResult(arr, itemId) {
     return arr.find((r) => r.item_id === itemId);
+  }
+
+  function shiftMarkup(a1, a2, hasBoth) {
+    const diff = a2 - a1;
+    let cls = 'shift-same';
+    let arrow = '=';
+    if (diff < -0.05) { cls = 'shift-down'; arrow = '↓'; }
+    else if (diff > 0.05) { cls = 'shift-up'; arrow = '↑'; }
+    const text = hasBoth ? (diff > 0 ? `+${diff.toFixed(2)}` : diff.toFixed(2)) : '—';
+    return `<span class="shift-arrow ${cls}">${arrow} ${text}</span>`;
   }
 
   function renderRound1(state, results) {
@@ -25,32 +35,32 @@
     const avg = r ? r.avg : 0;
     const count = r ? r.count : 0;
     root.innerHTML = `
-      <div class="single-stage">
-        <p class="phase-label">Round 1 — first impressions  ·  Item ${state.current_item_index} of ${state.total_items}</p>
+      <article class="stage">
+        <p class="phase-label">Round 1 · first impressions · item ${state.current_item_index} of ${state.total_items}</p>
         <h1 class="stage-title">${escapeHtml(item.title)}</h1>
         <div class="stage-grid">
-          <div class="stage-image">
+          <figure class="stage-figure">
             ${item.image_url ? `<img src="${escapeHtml(item.image_url)}" alt="">` : ''}
-          </div>
+          </figure>
           <div class="stage-side">
-            <p class="stage-ref">${escapeHtml(item.scripture_ref)}</p>
-            <blockquote class="stage-quote">${escapeHtml(item.scripture_text)}</blockquote>
-            <div class="meter-block">
-              <div class="meter-labels">
-                <span>1 — totally normal</span>
-                <span>5 — what on earth</span>
-              </div>
+            <section class="stage-scripture">
+              <p class="stage-eyebrow">Described in Exodus</p>
+              <p class="stage-ref">${escapeHtml(item.scripture_ref)}</p>
+              <blockquote class="stage-quote">${escapeHtml(item.scripture_text)}</blockquote>
+            </section>
+            <section class="stage-meter">
+              <p class="meter-prompt">How weird does this feel?</p>
               <div class="meter-track">
                 <div class="meter-fill r1" style="width: ${pct(avg)}%"></div>
               </div>
               <p class="meter-readout">
                 <span class="big-num">${avg ? avg.toFixed(2) : '—'}</span>
-                <span class="meter-meta">${count} vote${count === 1 ? '' : 's'}</span>
+                <span class="meter-meta">${count} vote${count === 1 ? '' : 's'}  ·  1 normal  ·  5 what on earth</span>
               </p>
-            </div>
+            </section>
           </div>
         </div>
-      </div>
+      </article>
     `;
   }
 
@@ -65,48 +75,48 @@
     const a1 = r1 ? r1.avg : 0;
     const a2 = r2 ? r2.avg : 0;
     const c2 = r2 ? r2.count : 0;
-    const diff = a2 - a1;
-    let arrowCls = 'shift-same';
-    let arrow = '=';
-    if (diff < -0.05) { arrowCls = 'shift-down'; arrow = '↓'; }
-    else if (diff > 0.05) { arrowCls = 'shift-up'; arrow = '↑'; }
-    const shiftText = (r1 && r2) ? (diff > 0 ? `+${diff.toFixed(2)}` : diff.toFixed(2)) : '—';
+    const shift = shiftMarkup(a1, a2, !!(r1 && r2));
 
     root.innerHTML = `
-      <div class="single-stage">
-        <p class="phase-label">Round 2 — after the meaning  ·  Item ${state.current_item_index} of ${state.total_items}</p>
-        <h1 class="stage-title">
-          ${escapeHtml(item.title)}
-          <span class="shift-arrow ${arrowCls}">${arrow} ${shiftText}</span>
-        </h1>
+      <article class="stage">
+        <p class="phase-label">Round 2 · after the meaning · item ${state.current_item_index} of ${state.total_items}</p>
+        <h1 class="stage-title">${escapeHtml(item.title)} ${shift}</h1>
         <div class="stage-grid">
-          <div class="stage-image">
+          <figure class="stage-figure">
             ${item.image_url ? `<img src="${escapeHtml(item.image_url)}" alt="">` : ''}
-          </div>
+          </figure>
           <div class="stage-side">
-            <p class="stage-ref">${escapeHtml(item.scripture_ref)}</p>
-            <blockquote class="stage-quote">${escapeHtml(item.scripture_text)}</blockquote>
-            <p class="stage-meaning">${escapeHtml(item.meaning)}</p>
-            <div class="compare-block">
+            <section class="stage-scripture">
+              <p class="stage-eyebrow">Described in Exodus</p>
+              <p class="stage-ref">${escapeHtml(item.scripture_ref)}</p>
+              <blockquote class="stage-quote">${escapeHtml(item.scripture_text)}</blockquote>
+            </section>
+            <section class="stage-context">
+              <p class="stage-eyebrow context-eyebrow">What it represents</p>
+              <p class="stage-ref">${escapeHtml(item.context_scripture_ref || '')}</p>
+              <blockquote class="stage-quote">${escapeHtml(item.context_scripture_text || '')}</blockquote>
+              ${item.meaning ? `<p class="meaning-line">${escapeHtml(item.meaning)}</p>` : ''}
+            </section>
+            <section class="stage-compare">
               <div class="compare-line">
-                <span class="compare-label">Round 1 (first look)</span>
+                <span class="compare-label">Round 1</span>
                 <div class="meter-track small">
                   <div class="meter-fill r1" style="width: ${pct(a1)}%"></div>
                 </div>
                 <span class="compare-num">${a1 ? a1.toFixed(2) : '—'}</span>
               </div>
               <div class="compare-line">
-                <span class="compare-label">Round 2 (after meaning)</span>
+                <span class="compare-label">Round 2</span>
                 <div class="meter-track small">
                   <div class="meter-fill r2" style="width: ${pct(a2)}%"></div>
                 </div>
                 <span class="compare-num">${a2 ? a2.toFixed(2) : '—'}</span>
               </div>
               <p class="meter-meta">${c2} vote${c2 === 1 ? '' : 's'} in Round 2</p>
-            </div>
+            </section>
           </div>
         </div>
-      </div>
+      </article>
     `;
   }
 
@@ -116,45 +126,37 @@
       const r2 = findResult(results.round2, item.id);
       const a1 = r1 ? r1.avg : 0;
       const a2 = r2 ? r2.avg : 0;
-      const diff = a2 - a1;
-      let arrowCls = 'shift-same';
-      let arrow = '=';
-      if (diff < -0.05) { arrowCls = 'shift-down'; arrow = '↓'; }
-      else if (diff > 0.05) { arrowCls = 'shift-up'; arrow = '↑'; }
-      const shiftText = (r1 && r2) ? (diff > 0 ? `+${diff.toFixed(2)}` : diff.toFixed(2)) : '—';
+      const shift = shiftMarkup(a1, a2, !!(r1 && r2));
 
       return `
         <div class="done-row">
           <div class="done-title">
-            <span>${escapeHtml(item.title)}</span>
-            <span class="shift-arrow ${arrowCls}">${arrow} ${shiftText}</span>
+            <span>${escapeHtml(item.title)}</span>${shift}
           </div>
-          <div class="done-bars">
-            <div class="bar-mini-row">
-              <span class="bar-mini-label">R1</span>
-              <div class="meter-track small">
-                <div class="meter-fill r1" style="width: ${pct(a1)}%"></div>
-              </div>
-              <span class="bar-mini-num">${a1 ? a1.toFixed(2) : '—'}</span>
+          <div class="bar-mini-row">
+            <span class="bar-mini-label">R1</span>
+            <div class="meter-track small">
+              <div class="meter-fill r1" style="width: ${pct(a1)}%"></div>
             </div>
-            <div class="bar-mini-row">
-              <span class="bar-mini-label">R2</span>
-              <div class="meter-track small">
-                <div class="meter-fill r2" style="width: ${pct(a2)}%"></div>
-              </div>
-              <span class="bar-mini-num">${a2 ? a2.toFixed(2) : '—'}</span>
+            <span class="bar-mini-num">${a1 ? a1.toFixed(2) : '—'}</span>
+          </div>
+          <div class="bar-mini-row">
+            <span class="bar-mini-label">R2</span>
+            <div class="meter-track small">
+              <div class="meter-fill r2" style="width: ${pct(a2)}%"></div>
             </div>
+            <span class="bar-mini-num">${a2 ? a2.toFixed(2) : '—'}</span>
           </div>
         </div>
       `;
     }).join('');
 
     root.innerHTML = `
-      <div class="done-stage">
-        <h1>Before vs. after</h1>
-        <p class="phase-label">All ${items.length} items, Round 1 → Round 2</p>
+      <article class="done-stage">
+        <p class="phase-label">All ${items.length} items · Round 1 → Round 2</p>
+        <h1 class="stage-title">Before vs. after</h1>
         ${rows}
-      </div>
+      </article>
     `;
   }
 
