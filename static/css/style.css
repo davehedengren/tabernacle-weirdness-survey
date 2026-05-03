@@ -512,6 +512,36 @@ body.projector {
   font-style: italic;
 }
 
+/* "voting in progress" card — shown in place of histogram while voting
+   is still open, so early votes don't anchor later voters. */
+.hidden-results {
+  text-align: center;
+  padding: 2.6rem 1.6rem 2rem;
+  background: var(--c-surface-dark);
+  border-radius: var(--radius);
+}
+.hidden-headline {
+  margin: 1rem 0 0.6rem;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+.hidden-headline .big-num {
+  font-size: 5.5rem;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--c-text-dark);
+  font-feature-settings: "tnum";
+}
+.hidden-suffix {
+  font-size: 1.2rem;
+  color: var(--c-muted-dark);
+  font-weight: 600;
+}
+
 /* histogram card (replaces the single-mean meter) */
 .hist-card {
   background: var(--c-surface-dark);

@@ -155,6 +155,91 @@ ITEMS = [
         'image_url': '/static/images/survey/v2_05_laver.png',
     },
     {
+        'title': 'The Anointing Oil',
+        'scripture_ref': 'Exodus 30:22–25, 32–33',
+        'scripture_text': (
+            "Moreover the Lord spake unto Moses, saying, Take thou also unto "
+            "thee principal spices, of pure myrrh five hundred shekels, and "
+            "of sweet cinnamon half so much, even two hundred and fifty "
+            "shekels, and of sweet calamus two hundred and fifty shekels, "
+            "And of cassia five hundred shekels, after the shekel of the "
+            "sanctuary, and of oil olive an hin: And thou shalt make it an "
+            "oil of holy ointment, an ointment compound after the art of "
+            "the apothecary: it shall be an holy anointing oil. ...Upon "
+            "man's flesh shall it not be poured, neither shall ye make any "
+            "other like it, after the composition of it: it is holy, and "
+            "it shall be holy unto you. Whosoever compoundeth any like it, "
+            "or whosoever putteth any of it upon a stranger, shall even be "
+            "cut off from his people."
+        ),
+        'context_scripture_ref': 'Luke 4:18; Acts 10:38',
+        'context_scripture_text': (
+            "The Spirit of the Lord is upon me, because he hath anointed me "
+            "to preach the gospel to the poor; he hath sent me to heal the "
+            "brokenhearted, to preach deliverance to the captives, and "
+            "recovering of sight to the blind, to set at liberty them that "
+            "are bruised. ...How God anointed Jesus of Nazareth with the "
+            "Holy Ghost and with power: who went about doing good, and "
+            "healing all that were oppressed of the devil; for God was "
+            "with him."
+        ),
+        'meaning': (
+            "Anointing — \"Christ\" / \"Messiah\" both literally mean "
+            "\"the Anointed One.\" We receive His anointing through the "
+            "Holy Spirit."
+        ),
+        'image_url': '/static/images/survey/v2_anointing_oil.png',
+    },
+    {
+        'title': "Aaron's Rod That Budded",
+        'scripture_ref': 'Numbers 17:8',
+        'scripture_text': (
+            "And it came to pass, that on the morrow Moses went into the "
+            "tabernacle of witness; and, behold, the rod of Aaron for the "
+            "house of Levi was budded, and brought forth buds, and bloomed "
+            "blossoms, and yielded almonds."
+        ),
+        'context_scripture_ref': 'Hebrews 9:4; 1 Corinthians 15:20',
+        'context_scripture_text': (
+            "Which had the golden censer, and the ark of the covenant "
+            "overlaid round about with gold, wherein was the golden pot that "
+            "had manna, and Aaron's rod that budded, and the tables of the "
+            "covenant. ...But now is Christ risen from the dead, and become "
+            "the firstfruits of them that slept."
+        ),
+        'meaning': (
+            "Resurrection — dead wood blossomed overnight; the chosen High "
+            "Priest is risen and lives."
+        ),
+        'image_url': '/static/images/survey/v2_aarons_rod.png',
+    },
+    {
+        'title': 'Cherubim Woven into the Veil',
+        'scripture_ref': 'Exodus 26:31; Genesis 3:24',
+        'scripture_text': (
+            "And thou shalt make a vail of blue, and purple, and scarlet, "
+            "and fine twined linen of cunning work: with cherubims shall it "
+            "be made. ...So he drove out the man; and he placed at the east "
+            "of the garden of Eden Cherubims, and a flaming sword which "
+            "turned every way, to keep the way of the tree of life."
+        ),
+        'context_scripture_ref': 'Matthew 27:51; Hebrews 10:19–20',
+        'context_scripture_text': (
+            "And, behold, the veil of the temple was rent in twain from the "
+            "top to the bottom; and the earth did quake, and the rocks rent. "
+            "...Having therefore, brethren, boldness to enter into the "
+            "holiest by the blood of Jesus, By a new and living way, which "
+            "he hath consecrated for us, through the veil, that is to say, "
+            "his flesh."
+        ),
+        'meaning': (
+            "Eden's barrier inverted — the same cherubim that blocked the "
+            "way back to God were woven into the veil that Christ tore "
+            "open."
+        ),
+        'image_url': '/static/images/survey/v2_cherubim_veil.png',
+    },
+    {
         'title': 'Two Goats on the Day of Atonement',
         'scripture_ref': 'Leviticus 16:7–10',
         'scripture_text': (

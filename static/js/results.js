@@ -118,6 +118,22 @@
     `;
   }
 
+  function votingHiddenMarkup() {
+    /* Shown during VOTING mode in place of the histogram so early votes
+       don't anchor later voters. Just a live-updating count of how many
+       phones have submitted so the teacher can pace the room. */
+    return `
+      <section class="hist-card hidden-results">
+        <p class="meter-prompt">Voting in progress</p>
+        <p class="hidden-headline">
+          <span class="big-num" data-vote-count>0</span>
+          <span class="hidden-suffix" data-vote-suffix>votes received</span>
+        </p>
+        <p class="meter-meta">Results hidden until voting closes.</p>
+      </section>
+    `;
+  }
+
   // ----- Initial scaffolds (rendered once per (item, phase, mode)) -----
 
   function scaffoldRound1(state, isSummary) {
@@ -125,6 +141,19 @@
     const phaseLine = isSummary
       ? `Round 1 summary · item ${state.current_item_index} of ${state.total_items}`
       : `Round 1 · first impressions · item ${state.current_item_index} of ${state.total_items}`;
+    const resultCard = isSummary ? `
+      <section class="hist-card">
+        <div class="hist-head">
+          <p class="meter-prompt">How weird does this feel?</p>
+          <div class="hist-mean">
+            <span class="hist-mean-num" data-mean>—</span>
+            <span class="hist-mean-label" data-meanlabel>avg · 0 votes</span>
+          </div>
+        </div>
+        ${histogramMarkup('r1')}
+        <p class="meter-meta">voting closed · discuss → then click Next</p>
+      </section>
+    ` : votingHiddenMarkup();
 
     return `
       <article class="stage ${isSummary ? 'stage-summary' : ''}">
@@ -140,17 +169,7 @@
               <p class="stage-ref">${escapeHtml(item.scripture_ref)}</p>
               <blockquote class="stage-quote">${escapeHtml(item.scripture_text)}</blockquote>
             </section>
-            <section class="hist-card">
-              <div class="hist-head">
-                <p class="meter-prompt">How weird does this feel?</p>
-                <div class="hist-mean">
-                  <span class="hist-mean-num" data-mean>—</span>
-                  <span class="hist-mean-label" data-meanlabel>avg · 0 votes</span>
-                </div>
-              </div>
-              ${histogramMarkup('r1')}
-              <p class="meter-meta">${isSummary ? 'voting closed · discuss → then click Next' : 'live'}</p>
-            </section>
+            ${resultCard}
           </div>
         </div>
       </article>
@@ -162,11 +181,30 @@
     const phaseLine = isSummary
       ? `Round 2 summary · item ${state.current_item_index} of ${state.total_items}`
       : `Round 2 · after the meaning · item ${state.current_item_index} of ${state.total_items}`;
+    // Shift indicator (R1 -> R2 arrow) is only meaningful once voting has
+    // closed; hiding it during voting prevents anchoring on the live diff.
+    const titleShift = isSummary ? ' <span data-shift>—</span>' : '';
+    const resultCard = isSummary ? `
+      <section class="hist-card">
+        <p class="meter-prompt">Distribution — before vs. after</p>
+        <div class="hist-stack">
+          <div class="hist-row">
+            <p class="hist-row-label">Round 1 · avg <span data-r1-avg>—</span> · <span data-r1-count>0 votes</span></p>
+            ${histogramMarkup('r1')}
+          </div>
+          <div class="hist-row">
+            <p class="hist-row-label">Round 2 · avg <span data-r2-avg>—</span> · <span data-r2-count>0 votes</span></p>
+            ${histogramMarkup('r2')}
+          </div>
+        </div>
+        <p class="meter-meta">voting closed · discuss → then click Next</p>
+      </section>
+    ` : votingHiddenMarkup();
 
     return `
       <article class="stage ${isSummary ? 'stage-summary' : ''}">
         <p class="phase-label">${phaseLine}</p>
-        <h1 class="stage-title">${escapeHtml(item.title)} <span data-shift>—</span></h1>
+        <h1 class="stage-title">${escapeHtml(item.title)}${titleShift}</h1>
         <div class="stage-grid">
           <figure class="stage-figure">
             ${item.image_url ? `<img src="${escapeHtml(item.image_url)}" alt="">` : ''}
@@ -183,20 +221,7 @@
               <blockquote class="stage-quote">${escapeHtml(item.context_scripture_text || '')}</blockquote>
               ${item.meaning ? `<p class="meaning-line">${escapeHtml(item.meaning)}</p>` : ''}
             </section>
-            <section class="hist-card">
-              <p class="meter-prompt">Distribution — before vs. after</p>
-              <div class="hist-stack">
-                <div class="hist-row">
-                  <p class="hist-row-label">Round 1 · avg <span data-r1-avg>—</span> · <span data-r1-count>0 votes</span></p>
-                  ${histogramMarkup('r1')}
-                </div>
-                <div class="hist-row">
-                  <p class="hist-row-label">Round 2 · avg <span data-r2-avg>—</span> · <span data-r2-count>0 votes</span></p>
-                  ${histogramMarkup('r2')}
-                </div>
-              </div>
-              <p class="meter-meta">${isSummary ? 'voting closed · discuss → then click Next' : 'live'}</p>
-            </section>
+            ${resultCard}
           </div>
         </div>
       </article>
@@ -256,8 +281,16 @@
   function updateRound1(state, results) {
     const item = state.current_item;
     const r = findResult(results.round1, item.id);
-    const avg = r ? r.avg : 0;
     const count = r ? r.count : 0;
+    if (state.mode === 'voting') {
+      // Only update the live vote counter; results stay hidden.
+      setText(root.querySelector('[data-vote-count]'), count);
+      setText(root.querySelector('[data-vote-suffix]'),
+              count === 1 ? 'vote received' : 'votes received');
+      return;
+    }
+    // Summary mode — reveal the histogram + mean.
+    const avg = r ? r.avg : 0;
     const dist = r ? r.dist : null;
     setText(root.querySelector('[data-mean]'), avg ? avg.toFixed(2) : '—');
     setText(root.querySelector('[data-meanlabel]'), `avg · ${count} vote${count === 1 ? '' : 's'}`);
@@ -266,26 +299,30 @@
 
   function updateRound2(state, results) {
     const item = state.current_item;
-    const r1 = findResult(results.round1, item.id);
     const r2 = findResult(results.round2, item.id);
+    const c2 = r2 ? r2.count : 0;
+    if (state.mode === 'voting') {
+      // Voting in progress — only show how many have re-voted.
+      setText(root.querySelector('[data-vote-count]'), c2);
+      setText(root.querySelector('[data-vote-suffix]'),
+              c2 === 1 ? 'vote received' : 'votes received');
+      return;
+    }
+    // Summary mode — reveal both histograms, both means, and the shift.
+    const r1 = findResult(results.round1, item.id);
     const a1 = r1 ? r1.avg : 0;
     const a2 = r2 ? r2.avg : 0;
     const c1 = r1 ? r1.count : 0;
-    const c2 = r2 ? r2.count : 0;
     setText(root.querySelector('[data-r1-avg]'), a1 ? a1.toFixed(2) : '—');
     setText(root.querySelector('[data-r1-count]'), `${c1} vote${c1 === 1 ? '' : 's'}`);
     setText(root.querySelector('[data-r2-avg]'), a2 ? a2.toFixed(2) : '—');
     setText(root.querySelector('[data-r2-count]'), `${c2} vote${c2 === 1 ? '' : 's'}`);
     updateHistogram(root, 'r1', r1 ? r1.dist : null);
     updateHistogram(root, 'r2', r2 ? r2.dist : null);
-    // shift indicator (replace the inner HTML of the data-shift span only)
     const shiftEl = root.querySelector('[data-shift]');
     if (shiftEl) {
       const next = shiftMarkup(a1, a2, !!(r1 && r2));
-      if (shiftEl.outerHTML !== `<span data-shift>${next}</span>` &&
-          shiftEl.innerHTML !== next) {
-        shiftEl.innerHTML = next;
-      }
+      if (shiftEl.innerHTML !== next) shiftEl.innerHTML = next;
     }
   }
 
