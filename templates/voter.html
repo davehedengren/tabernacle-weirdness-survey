@@ -6,19 +6,20 @@
   <h1>Tabernacle Weirdness</h1>
   <p id="round-banner" class="round-banner">Loading...</p>
 </header>
-<main id="items-container" class="items-container">
-  <p class="loading">Loading items...</p>
+<main id="single-item" class="single-item">
+  <p class="loading">Loading...</p>
 </main>
 <template id="item-template">
   <article class="item">
-    <header class="item-head">
-      <h2 class="item-title"></h2>
-      <span class="voted-mark" hidden>&#10003; Voted</span>
-    </header>
+    <p class="item-progress"></p>
+    <h2 class="item-title"></h2>
     <img class="item-image" alt="">
     <p class="scripture-ref"></p>
     <blockquote class="scripture-text"></blockquote>
-    <p class="meaning" hidden></p>
+    <section class="meaning-block" hidden>
+      <p class="meaning-label">What it really meant:</p>
+      <p class="meaning"></p>
+    </section>
     <div class="rating-row">
       <span class="rating-label-left">1 = totally normal</span>
       <span class="rating-label-right">5 = what on earth</span>
@@ -30,7 +31,14 @@
       <button type="button" class="rating-btn" data-rating="4">4</button>
       <button type="button" class="rating-btn" data-rating="5">5</button>
     </div>
+    <p class="vote-status" hidden></p>
   </article>
+</template>
+<template id="done-template">
+  <div class="done-msg">
+    <h2>Class is wrapping up</h2>
+    <p>Thanks for voting. Look at the screen.</p>
+  </div>
 </template>
 {% endblock %}
 {% block scripts %}

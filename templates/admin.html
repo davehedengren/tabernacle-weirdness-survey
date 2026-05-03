@@ -4,28 +4,46 @@
 {% block content %}
 <main class="admin-main">
   <h1>Admin</h1>
-  <div class="state-badge">
-    Current state: <span id="current-state">...</span>
+
+  <div class="state-card">
+    <p class="state-phase" id="state-phase">...</p>
+    <p class="state-item" id="state-item">...</p>
+    <p class="state-progress" id="state-progress">...</p>
   </div>
 
-  <div class="state-buttons">
-    <button class="state-btn round1" data-round="1">Round 1: Rate Weirdness</button>
-    <button class="state-btn round2" data-round="2">Round 2: After Reveal</button>
-    <button class="state-btn comparison" data-round="comparison">Show Comparison</button>
+  <div class="nav-buttons">
+    <button id="prev-btn" class="nav-btn back">← Back</button>
+    <button id="next-btn" class="nav-btn next">Next →</button>
   </div>
 
-  <div class="voter-counts" id="voter-counts">
-    Voters: ...
-  </div>
+  <p id="next-preview" class="next-preview"></p>
 
-  <section class="qr-section">
-    <p class="qr-label">Voter URL:</p>
+  <div class="voter-counts" id="voter-counts">Voters: ...</div>
+
+  <details class="qr-section">
+    <summary>QR code & voter URL</summary>
     <p class="voter-url"><a href="{{ voter_url }}">{{ voter_url }}</a></p>
     <img class="qr" alt="QR code for voter URL"
          src="data:image/png;base64,{{ qr_b64 }}">
-  </section>
+  </details>
 
-  <button id="reset-btn" class="reset-btn">Reset All Votes</button>
+  <details class="advanced">
+    <summary>Advanced</summary>
+    <div class="jump-row">
+      <label>Jump to: phase
+        <select id="jump-phase">
+          <option value="round1">round1</option>
+          <option value="round2">round2</option>
+          <option value="done">done</option>
+        </select>
+      </label>
+      <label>item
+        <input id="jump-index" type="number" min="0" value="1" style="width:60px">
+      </label>
+      <button id="jump-btn">Go</button>
+    </div>
+    <button id="reset-btn" class="reset-btn">Reset all votes</button>
+  </details>
 </main>
 {% endblock %}
 {% block scripts %}

@@ -123,3 +123,17 @@ def reset_votes():
         conn.commit()
     finally:
         conn.close()
+
+
+def get_item_voter_count(item_id, round_):
+    """Distinct voters who have rated a specific item in the given round."""
+    conn = get_conn()
+    try:
+        row = conn.execute(
+            'SELECT COUNT(DISTINCT voter_uuid) AS c FROM votes '
+            'WHERE item_id = ? AND round = ?',
+            (item_id, round_),
+        ).fetchone()
+        return row['c'] if row else 0
+    finally:
+        conn.close()
