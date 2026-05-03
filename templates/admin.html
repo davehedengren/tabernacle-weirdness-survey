@@ -20,6 +20,8 @@
 
   <div class="voter-counts" id="voter-counts">Voters: ...</div>
 
+  <button id="reset-btn" class="reset-btn">Reset all votes</button>
+
   <details class="qr-section">
     <summary>QR code & voter URL</summary>
     <p class="voter-url"><a href="{{ voter_url }}">{{ voter_url }}</a></p>
@@ -28,7 +30,7 @@
   </details>
 
   <details class="advanced">
-    <summary>Advanced</summary>
+    <summary>Advanced — jump to a specific state</summary>
     <div class="jump-row">
       <label>phase
         <select id="jump-phase">
@@ -48,7 +50,6 @@
       </label>
       <button id="jump-btn">Go</button>
     </div>
-    <button id="reset-btn" class="reset-btn">Reset all votes</button>
   </details>
 </main>
 {% endblock %}
