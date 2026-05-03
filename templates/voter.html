@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Rate the Weirdness{% endblock %}
+{% block body_class %}voter{% endblock %}
+{% block content %}
+<header class="voter-header">
+  <h1>Tabernacle Weirdness</h1>
+  <p id="round-banner" class="round-banner">Loading...</p>
+</header>
+<main id="items-container" class="items-container">
+  <p class="loading">Loading items...</p>
+</main>
+<template id="item-template">
+  <article class="item">
+    <header class="item-head">
+      <h2 class="item-title"></h2>
+      <span class="voted-mark" hidden>&#10003; Voted</span>
+    </header>
+    <img class="item-image" alt="">
+    <p class="scripture-ref"></p>
+    <blockquote class="scripture-text"></blockquote>
+    <p class="meaning" hidden></p>
+    <div class="rating-row">
+      <span class="rating-label-left">1 = totally normal</span>
+      <span class="rating-label-right">5 = what on earth</span>
+    </div>
+    <div class="rating-buttons" role="radiogroup" aria-label="weirdness rating">
+      <button type="button" class="rating-btn" data-rating="1">1</button>
+      <button type="button" class="rating-btn" data-rating="2">2</button>
+      <button type="button" class="rating-btn" data-rating="3">3</button>
+      <button type="button" class="rating-btn" data-rating="4">4</button>
+      <button type="button" class="rating-btn" data-rating="5">5</button>
+    </div>
+  </article>
+</template>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/voter.js') }}"></script>
+{% endblock %}

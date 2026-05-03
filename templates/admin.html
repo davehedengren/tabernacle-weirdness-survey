@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Admin{% endblock %}
+{% block body_class %}admin{% endblock %}
+{% block content %}
+<main class="admin-main">
+  <h1>Admin</h1>
+  <div class="state-badge">
+    Current state: <span id="current-state">...</span>
+  </div>
+
+  <div class="state-buttons">
+    <button class="state-btn round1" data-round="1">Round 1: Rate Weirdness</button>
+    <button class="state-btn round2" data-round="2">Round 2: After Reveal</button>
+    <button class="state-btn comparison" data-round="comparison">Show Comparison</button>
+  </div>
+
+  <div class="voter-counts" id="voter-counts">
+    Voters: ...
+  </div>
+
+  <section class="qr-section">
+    <p class="qr-label">Voter URL:</p>
+    <p class="voter-url"><a href="{{ voter_url }}">{{ voter_url }}</a></p>
+    <img class="qr" alt="QR code for voter URL"
+         src="data:image/png;base64,{{ qr_b64 }}">
+  </section>
+
+  <button id="reset-btn" class="reset-btn">Reset All Votes</button>
+</main>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Results{% endblock %}
+{% block body_class %}projector{% endblock %}
+{% block content %}
+<header class="projector-header">
+  <h1 id="projector-title">Tabernacle Weirdness</h1>
+  <p id="projector-subtitle"></p>
+</header>
+<main id="results-container" class="results-container">
+  <p class="loading">Loading results...</p>
+</main>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/results.js') }}"></script>
+{% endblock %}
