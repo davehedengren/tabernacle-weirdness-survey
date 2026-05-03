@@ -13,7 +13,12 @@ app = Flask(__name__)
 #   phase = 'round1' | 'round2' | 'done'
 #   current_item_index = 1..N (1-based, matches items.display_order),
 #                        or 0 when phase == 'done'
+#   mode  = 'voting' | 'summary'
+#       voting  -> students vote, projector shows live tally
+#       summary -> voting closed, projector shows locked tally for
+#                  discussion before advancing
 PHASES = ('round1', 'round2', 'done')
+MODES = ('voting', 'summary')
 
 
 def _get_state():
@@ -24,12 +29,16 @@ def _get_state():
         idx = int(db.get_state('current_item_index', '1'))
     except (TypeError, ValueError):
         idx = 1
-    return phase, idx
+    mode = db.get_state('mode', 'voting')
+    if mode not in MODES:
+        mode = 'voting'
+    return phase, idx, mode
 
 
-def _set_state(phase, idx):
+def _set_state(phase, idx, mode):
     db.set_state('phase', phase)
     db.set_state('current_item_index', str(idx))
+    db.set_state('mode', mode)
 
 
 def _items():
@@ -37,7 +46,6 @@ def _items():
 
 
 def _item_at(idx, items):
-    """Return item dict at 1-based display-order index, or None."""
     if idx < 1:
         return None
     for it in items:
@@ -47,7 +55,6 @@ def _item_at(idx, items):
 
 
 def _phase_to_round(phase):
-    """Map phase to the votes.round string used in the DB."""
     if phase == 'round1':
         return '1'
     if phase == 'round2':
@@ -57,13 +64,14 @@ def _phase_to_round(phase):
 
 def _state_payload():
     items = _items()
-    phase, idx = _get_state()
+    phase, idx, mode = _get_state()
     total = len(items)
     item = _item_at(idx, items) if phase != 'done' else None
     return {
         'phase': phase,
         'current_item_index': idx if phase != 'done' else 0,
         'total_items': total,
+        'mode': mode,
         'current_item': item,
     }
 
@@ -100,31 +108,49 @@ def api_state():
         data = request.get_json(force=True, silent=True) or {}
         phase = data.get('phase')
         idx = data.get('current_item_index')
+        mode = data.get('mode', 'voting')
         if phase not in PHASES:
             return jsonify({'error': 'invalid phase'}), 400
         try:
             idx = int(idx)
         except (TypeError, ValueError):
             return jsonify({'error': 'invalid index'}), 400
-        _set_state(phase, idx)
+        if mode not in MODES:
+            return jsonify({'error': 'invalid mode'}), 400
+        _set_state(phase, idx, mode)
     return jsonify(_state_payload())
 
 
 @app.route('/api/next', methods=['POST'])
 def api_next():
+    """Advance through the state machine.
+
+    Each item has two stops: voting and summary. So Next from 'voting'
+    closes voting (lock the tally for discussion); Next from 'summary'
+    advances to the next item's voting screen. Crossing rounds (round1
+    last summary -> round2 first voting) is a single Next click. Done
+    is the absorbing state.
+    """
     items = _items()
     total = len(items)
-    phase, idx = _get_state()
+    phase, idx, mode = _get_state()
+
     if phase == 'round1':
-        if idx < total:
-            _set_state('round1', idx + 1)
-        else:
-            _set_state('round2', 1)
+        if mode == 'voting':
+            _set_state('round1', idx, 'summary')
+        else:  # summary
+            if idx < total:
+                _set_state('round1', idx + 1, 'voting')
+            else:
+                _set_state('round2', 1, 'voting')
     elif phase == 'round2':
-        if idx < total:
-            _set_state('round2', idx + 1)
+        if mode == 'voting':
+            _set_state('round2', idx, 'summary')
         else:
-            _set_state('done', 0)
+            if idx < total:
+                _set_state('round2', idx + 1, 'voting')
+            else:
+                _set_state('done', 0, 'voting')
     # done: no-op
     return jsonify(_state_payload())
 
@@ -133,18 +159,23 @@ def api_next():
 def api_prev():
     items = _items()
     total = len(items)
-    phase, idx = _get_state()
+    phase, idx, mode = _get_state()
+
     if phase == 'round1':
-        if idx > 1:
-            _set_state('round1', idx - 1)
-        # at round1/1: stay
+        if mode == 'summary':
+            _set_state('round1', idx, 'voting')
+        elif idx > 1:
+            _set_state('round1', idx - 1, 'summary')
+        # round1/1/voting: stay
     elif phase == 'round2':
-        if idx > 1:
-            _set_state('round2', idx - 1)
+        if mode == 'summary':
+            _set_state('round2', idx, 'voting')
+        elif idx > 1:
+            _set_state('round2', idx - 1, 'summary')
         else:
-            _set_state('round1', total)
+            _set_state('round1', total, 'summary')
     elif phase == 'done':
-        _set_state('round2', total)
+        _set_state('round2', total, 'summary')
     return jsonify(_state_payload())
 
 
@@ -164,9 +195,9 @@ def api_vote():
         return jsonify({'error': 'rating out of range'}), 400
 
     items = _items()
-    phase, idx = _get_state()
+    phase, idx, mode = _get_state()
     round_str = _phase_to_round(phase)
-    if round_str is None:
+    if round_str is None or mode != 'voting':
         return jsonify({'error': 'voting closed'}), 403
     item = _item_at(idx, items)
     if item is None:
@@ -183,10 +214,8 @@ def api_results():
 
 @app.route('/api/voter_count')
 def api_voter_count():
-    """Return distinct voter count for the CURRENT item / phase, plus
-    overall counts per round for context."""
     items = _items()
-    phase, idx = _get_state()
+    phase, idx, mode = _get_state()
     round_str = _phase_to_round(phase)
     item = _item_at(idx, items)
     overall = db.get_voter_counts()
@@ -204,5 +233,5 @@ def api_voter_count():
 @app.route('/api/reset', methods=['POST'])
 def api_reset():
     db.reset_votes()
-    _set_state('round1', 1)
+    _set_state('round1', 1, 'voting')
     return jsonify({'ok': True})

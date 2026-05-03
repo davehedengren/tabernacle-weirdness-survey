@@ -14,9 +14,17 @@
   const localVotes = {};
   let renderedKey = null;
 
-  function bannerText(phase, idx, total) {
-    if (phase === 'round1') return `Round 1 · ${idx} of ${total}`;
-    if (phase === 'round2') return `Round 2 · ${idx} of ${total}`;
+  function bannerText(phase, idx, total, mode) {
+    if (phase === 'round1') {
+      return mode === 'summary'
+        ? `Round 1 · ${idx} of ${total} · results`
+        : `Round 1 · ${idx} of ${total}`;
+    }
+    if (phase === 'round2') {
+      return mode === 'summary'
+        ? `Round 2 · ${idx} of ${total} · results`
+        : `Round 2 · ${idx} of ${total}`;
+    }
     return 'Voting complete';
   }
 
@@ -25,12 +33,13 @@
     container.appendChild(doneTpl.content.cloneNode(true));
   }
 
-  function renderItem(phase, idx, total, item) {
+  function renderItem(phase, idx, total, mode, item) {
     container.innerHTML = '';
     const node = itemTpl.content.cloneNode(true);
     const article = node.querySelector('.item');
     article.dataset.itemId = item.id;
     article.dataset.phase = phase;
+    article.dataset.mode = mode;
 
     node.querySelector('.item-title').textContent = item.title;
     const img = node.querySelector('.item-image');
@@ -56,13 +65,29 @@
       }
     }
 
-    const buttons = node.querySelectorAll('.rating-btn');
-    buttons.forEach((btn) => {
-      btn.addEventListener('click', () => handleVote(phase, item.id, parseInt(btn.dataset.rating, 10)));
-    });
+    const ratingCard = node.querySelector('.rating-card');
+    const closedCard = node.querySelector('.voting-closed-card');
+    if (mode === 'summary') {
+      ratingCard.hidden = true;
+      closedCard.hidden = false;
+      const yourVote = localVotes[`${phase}:${item.id}`];
+      const reminder = node.querySelector('.your-vote');
+      if (yourVote) {
+        reminder.textContent = `You voted ${yourVote}.`;
+      } else {
+        reminder.textContent = 'You did not vote on this one.';
+      }
+    } else {
+      const buttons = node.querySelectorAll('.rating-btn');
+      buttons.forEach((btn) => {
+        btn.addEventListener('click', () => handleVote(phase, item.id, parseInt(btn.dataset.rating, 10)));
+      });
+    }
 
     container.appendChild(node);
-    applyVoteUI(phase, item.id);
+    if (mode === 'voting') {
+      applyVoteUI(phase, item.id);
+    }
   }
 
   function applyVoteUI(phase, itemId) {
@@ -70,11 +95,13 @@
     if (!article) return;
     const rating = localVotes[`${phase}:${itemId}`];
     const status = article.querySelector('.vote-status');
-    if (rating) {
-      status.hidden = false;
-      status.textContent = `Voted ${rating}. Tap a different number to change.`;
-    } else {
-      status.hidden = true;
+    if (status) {
+      if (rating) {
+        status.hidden = false;
+        status.textContent = `Voted ${rating}. Tap a different number to change.`;
+      } else {
+        status.hidden = true;
+      }
     }
     article.querySelectorAll('.rating-btn').forEach((b) => {
       b.classList.toggle('selected', parseInt(b.dataset.rating, 10) === rating);
@@ -100,7 +127,7 @@
     try {
       const res = await fetch('/api/state');
       const state = await res.json();
-      banner.textContent = bannerText(state.phase, state.current_item_index, state.total_items);
+      banner.textContent = bannerText(state.phase, state.current_item_index, state.total_items, state.mode);
 
       if (state.phase === 'done') {
         if (renderedKey !== 'done') {
@@ -118,10 +145,10 @@
         }
         return;
       }
-      const key = `${state.phase}:${item.id}`;
+      const key = `${state.phase}:${item.id}:${state.mode}`;
       if (renderedKey !== key) {
         renderedKey = key;
-        renderItem(state.phase, state.current_item_index, state.total_items, item);
+        renderItem(state.phase, state.current_item_index, state.total_items, state.mode, item);
       }
     } catch (e) {
       console.error('tick failed', e);
