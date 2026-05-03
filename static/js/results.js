@@ -1,10 +1,6 @@
 (function () {
   const root = document.getElementById('projector-root');
 
-  function pct(avg) {
-    return Math.max(0, Math.min(100, (avg / 5) * 100));
-  }
-
   function escapeHtml(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -25,16 +21,57 @@
     return `<span class="shift-arrow ${cls}">${arrow} ${text}</span>`;
   }
 
+  function histogram(dist, roundClass) {
+    /* Vertical 5-bar histogram. dist = [count_1..count_5]. roundClass =
+       'r1' or 'r2' for color. Heights are normalized to the max count
+       so the tallest bar always fills the column; if no votes, all
+       columns sit at the floor with a "0" label. */
+    const d = dist || [0, 0, 0, 0, 0];
+    const max = Math.max(1, ...d);
+    return `
+      <div class="histogram">
+        ${d.map((c, i) => {
+          const h = (c / max) * 100;
+          return `
+            <div class="hist-cell">
+              <span class="hist-count">${c}</span>
+              <div class="hist-bar ${roundClass}" style="height: ${h}%"></div>
+              <span class="hist-label">${i + 1}</span>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+
+  function statsBlock(avg, count, label) {
+    return `
+      <div class="stats-line">
+        <span class="stats-label">${label}</span>
+        <span class="stats-mean">${avg ? avg.toFixed(2) : '—'}</span>
+        <span class="stats-meta">avg · ${count} vote${count === 1 ? '' : 's'}</span>
+      </div>
+    `;
+  }
+
   // ----- Round 1 -----
 
-  function renderRound1Voting(state, results) {
+  function renderRound1(state, results, isSummary) {
     const item = state.current_item;
     const r = findResult(results.round1, item.id);
     const avg = r ? r.avg : 0;
     const count = r ? r.count : 0;
+    const dist = r ? r.dist : null;
+    const phaseLine = isSummary
+      ? `Round 1 summary · item ${state.current_item_index} of ${state.total_items}`
+      : `Round 1 · first impressions · item ${state.current_item_index} of ${state.total_items}`;
+    const meterCaption = isSummary
+      ? '<span class="meter-meta">voting closed</span>'
+      : '<span class="meter-meta">live</span>';
+
     root.innerHTML = `
-      <article class="stage">
-        <p class="phase-label">Round 1 · first impressions · item ${state.current_item_index} of ${state.total_items}</p>
+      <article class="stage ${isSummary ? 'stage-summary' : ''}">
+        <p class="phase-label">${phaseLine}</p>
         <h1 class="stage-title">${escapeHtml(item.title)}</h1>
         <div class="stage-grid">
           <figure class="stage-figure">
@@ -46,49 +83,17 @@
               <p class="stage-ref">${escapeHtml(item.scripture_ref)}</p>
               <blockquote class="stage-quote">${escapeHtml(item.scripture_text)}</blockquote>
             </section>
-            <section class="stage-meter">
-              <p class="meter-prompt">How weird does this feel?</p>
-              <div class="meter-track">
-                <div class="meter-fill r1" style="width: ${pct(avg)}%"></div>
+            <section class="hist-card">
+              <div class="hist-head">
+                <p class="meter-prompt">How weird does this feel?</p>
+                <div class="hist-mean">
+                  <span class="hist-mean-num">${avg ? avg.toFixed(2) : '—'}</span>
+                  <span class="hist-mean-label">avg · ${count} vote${count === 1 ? '' : 's'}</span>
+                </div>
               </div>
-              <p class="meter-readout">
-                <span class="big-num">${avg ? avg.toFixed(2) : '—'}</span>
-                <span class="meter-meta">${count} vote${count === 1 ? '' : 's'} · live</span>
-              </p>
+              ${histogram(dist, 'r1')}
+              <p class="meter-meta">${isSummary ? 'voting closed · discuss → then click Next' : 'live'}</p>
             </section>
-          </div>
-        </div>
-      </article>
-    `;
-  }
-
-  function renderRound1Summary(state, results) {
-    const item = state.current_item;
-    const r = findResult(results.round1, item.id);
-    const avg = r ? r.avg : 0;
-    const count = r ? r.count : 0;
-    root.innerHTML = `
-      <article class="stage stage-summary">
-        <p class="phase-label">Round 1 summary · item ${state.current_item_index} of ${state.total_items}</p>
-        <h1 class="stage-title">${escapeHtml(item.title)}</h1>
-        <div class="summary-grid">
-          <figure class="stage-figure">
-            ${item.image_url ? `<img src="${escapeHtml(item.image_url)}" alt="">` : ''}
-          </figure>
-          <div class="summary-bigreadout">
-            <p class="summary-eyebrow">Class average · weirdness</p>
-            <p class="summary-bignum">${avg ? avg.toFixed(2) : '—'}</p>
-            <div class="summary-meter">
-              <div class="meter-track">
-                <div class="meter-fill r1" style="width: ${pct(avg)}%"></div>
-              </div>
-              <div class="summary-scale">
-                <span>1 — totally normal</span>
-                <span>5 — what on earth</span>
-              </div>
-            </div>
-            <p class="summary-meta">${count} vote${count === 1 ? '' : 's'} · voting closed</p>
-            <p class="summary-cta">Discuss → then click Next</p>
           </div>
         </div>
       </article>
@@ -97,17 +102,25 @@
 
   // ----- Round 2 -----
 
-  function renderRound2Voting(state, results) {
+  function renderRound2(state, results, isSummary) {
     const item = state.current_item;
     const r1 = findResult(results.round1, item.id);
     const r2 = findResult(results.round2, item.id);
     const a1 = r1 ? r1.avg : 0;
     const a2 = r2 ? r2.avg : 0;
+    const c1 = r1 ? r1.count : 0;
     const c2 = r2 ? r2.count : 0;
+    const d1 = r1 ? r1.dist : null;
+    const d2 = r2 ? r2.dist : null;
+    const shift = shiftMarkup(a1, a2, !!(r1 && r2));
+    const phaseLine = isSummary
+      ? `Round 2 summary · item ${state.current_item_index} of ${state.total_items}`
+      : `Round 2 · after the meaning · item ${state.current_item_index} of ${state.total_items}`;
+
     root.innerHTML = `
-      <article class="stage">
-        <p class="phase-label">Round 2 · after the meaning · item ${state.current_item_index} of ${state.total_items}</p>
-        <h1 class="stage-title">${escapeHtml(item.title)}</h1>
+      <article class="stage ${isSummary ? 'stage-summary' : ''}">
+        <p class="phase-label">${phaseLine}</p>
+        <h1 class="stage-title">${escapeHtml(item.title)} ${shift}</h1>
         <div class="stage-grid">
           <figure class="stage-figure">
             ${item.image_url ? `<img src="${escapeHtml(item.image_url)}" alt="">` : ''}
@@ -124,68 +137,20 @@
               <blockquote class="stage-quote">${escapeHtml(item.context_scripture_text || '')}</blockquote>
               ${item.meaning ? `<p class="meaning-line">${escapeHtml(item.meaning)}</p>` : ''}
             </section>
-            <section class="stage-compare">
-              <p class="meter-prompt">Re-rate it. Live tally:</p>
-              <div class="compare-line">
-                <span class="compare-label">Round 1</span>
-                <div class="meter-track small">
-                  <div class="meter-fill r1" style="width: ${pct(a1)}%"></div>
+            <section class="hist-card">
+              <p class="meter-prompt">Distribution — before vs. after</p>
+              <div class="hist-stack">
+                <div class="hist-row">
+                  <p class="hist-row-label">Round 1 · avg ${a1 ? a1.toFixed(2) : '—'} · ${c1} vote${c1 === 1 ? '' : 's'}</p>
+                  ${histogram(d1, 'r1')}
                 </div>
-                <span class="compare-num">${a1 ? a1.toFixed(2) : '—'}</span>
-              </div>
-              <div class="compare-line">
-                <span class="compare-label">Round 2</span>
-                <div class="meter-track small">
-                  <div class="meter-fill r2" style="width: ${pct(a2)}%"></div>
+                <div class="hist-row">
+                  <p class="hist-row-label">Round 2 · avg ${a2 ? a2.toFixed(2) : '—'} · ${c2} vote${c2 === 1 ? '' : 's'}</p>
+                  ${histogram(d2, 'r2')}
                 </div>
-                <span class="compare-num">${a2 ? a2.toFixed(2) : '—'}</span>
               </div>
-              <p class="meter-meta">${c2} vote${c2 === 1 ? '' : 's'} so far · live</p>
+              <p class="meter-meta">${isSummary ? 'voting closed · discuss → then click Next' : 'live'}</p>
             </section>
-          </div>
-        </div>
-      </article>
-    `;
-  }
-
-  function renderRound2Summary(state, results) {
-    const item = state.current_item;
-    const r1 = findResult(results.round1, item.id);
-    const r2 = findResult(results.round2, item.id);
-    const a1 = r1 ? r1.avg : 0;
-    const a2 = r2 ? r2.avg : 0;
-    const c2 = r2 ? r2.count : 0;
-    const shift = shiftMarkup(a1, a2, !!(r1 && r2));
-
-    root.innerHTML = `
-      <article class="stage stage-summary">
-        <p class="phase-label">Round 2 summary · item ${state.current_item_index} of ${state.total_items}</p>
-        <h1 class="stage-title">${escapeHtml(item.title)} ${shift}</h1>
-        <div class="summary-grid">
-          <figure class="stage-figure">
-            ${item.image_url ? `<img src="${escapeHtml(item.image_url)}" alt="">` : ''}
-          </figure>
-          <div class="summary-bigreadout">
-            <p class="summary-eyebrow">Before vs. after</p>
-            <div class="summary-compare">
-              <div class="summary-compare-line">
-                <span class="summary-compare-label">Round 1</span>
-                <div class="meter-track">
-                  <div class="meter-fill r1" style="width: ${pct(a1)}%"></div>
-                </div>
-                <span class="summary-compare-num">${a1 ? a1.toFixed(2) : '—'}</span>
-              </div>
-              <div class="summary-compare-line">
-                <span class="summary-compare-label">Round 2</span>
-                <div class="meter-track">
-                  <div class="meter-fill r2" style="width: ${pct(a2)}%"></div>
-                </div>
-                <span class="summary-compare-num">${a2 ? a2.toFixed(2) : '—'}</span>
-              </div>
-            </div>
-            ${item.meaning ? `<p class="summary-meaning">${escapeHtml(item.meaning)}</p>` : ''}
-            <p class="summary-meta">${c2} vote${c2 === 1 ? '' : 's'} in Round 2 · voting closed</p>
-            <p class="summary-cta">Discuss → then click Next</p>
           </div>
         </div>
       </article>
@@ -200,6 +165,8 @@
       const r2 = findResult(results.round2, item.id);
       const a1 = r1 ? r1.avg : 0;
       const a2 = r2 ? r2.avg : 0;
+      const d1 = r1 ? r1.dist : null;
+      const d2 = r2 ? r2.dist : null;
       const shift = shiftMarkup(a1, a2, !!(r1 && r2));
 
       return `
@@ -207,19 +174,15 @@
           <div class="done-title">
             <span>${escapeHtml(item.title)}</span>${shift}
           </div>
-          <div class="bar-mini-row">
-            <span class="bar-mini-label">R1</span>
-            <div class="meter-track small">
-              <div class="meter-fill r1" style="width: ${pct(a1)}%"></div>
+          <div class="done-grid">
+            <div class="done-col">
+              <p class="done-col-label">R1 · ${a1 ? a1.toFixed(2) : '—'}</p>
+              ${histogram(d1, 'r1')}
             </div>
-            <span class="bar-mini-num">${a1 ? a1.toFixed(2) : '—'}</span>
-          </div>
-          <div class="bar-mini-row">
-            <span class="bar-mini-label">R2</span>
-            <div class="meter-track small">
-              <div class="meter-fill r2" style="width: ${pct(a2)}%"></div>
+            <div class="done-col">
+              <p class="done-col-label">R2 · ${a2 ? a2.toFixed(2) : '—'}</p>
+              ${histogram(d2, 'r2')}
             </div>
-            <span class="bar-mini-num">${a2 ? a2.toFixed(2) : '—'}</span>
           </div>
         </div>
       `;
@@ -261,13 +224,9 @@
         root.innerHTML = '<p class="loading">No item selected.</p>';
         return;
       }
-      if (state.phase === 'round1') {
-        if (state.mode === 'summary') renderRound1Summary(state, results);
-        else renderRound1Voting(state, results);
-      } else if (state.phase === 'round2') {
-        if (state.mode === 'summary') renderRound2Summary(state, results);
-        else renderRound2Voting(state, results);
-      }
+      const isSummary = state.mode === 'summary';
+      if (state.phase === 'round1') renderRound1(state, results, isSummary);
+      else if (state.phase === 'round2') renderRound2(state, results, isSummary);
     } catch (e) {
       console.error('tick failed', e);
     }

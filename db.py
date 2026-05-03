@@ -82,20 +82,36 @@ def insert_vote(voter_uuid, item_id, round_, rating):
 
 
 def get_results():
+    """Return per-item aggregate stats AND per-rating distributions, grouped
+    by round. Each entry: {item_id, avg, count, dist} where dist is a 5-element
+    list [count_of_1, count_of_2, count_of_3, count_of_4, count_of_5]."""
     conn = get_conn()
     try:
-        rows = conn.execute(
-            'SELECT item_id, round, AVG(rating) AS avg, COUNT(*) AS count '
-            'FROM votes GROUP BY item_id, round'
+        # Per-rating breakdown for the histogram.
+        dist_rows = conn.execute(
+            'SELECT item_id, round, rating, COUNT(*) AS c '
+            'FROM votes GROUP BY item_id, round, rating'
         ).fetchall()
-        round1 = []
-        round2 = []
-        for r in rows:
-            entry = {'item_id': r['item_id'], 'avg': float(r['avg']), 'count': r['count']}
-            if r['round'] == '1':
-                round1.append(entry)
-            else:
-                round2.append(entry)
+        # Aggregate avg + count from the per-rating data so the two views
+        # are guaranteed to agree (no risk of drift between two queries).
+        per = {}  # (item_id, round) -> {'dist': [...], 'sum': n, 'count': n}
+        for r in dist_rows:
+            key = (r['item_id'], r['round'])
+            entry = per.setdefault(key, {'dist': [0, 0, 0, 0, 0], 'sum': 0, 'count': 0})
+            entry['dist'][r['rating'] - 1] = r['c']
+            entry['sum'] += r['rating'] * r['c']
+            entry['count'] += r['c']
+
+        round1, round2 = [], []
+        for (item_id, round_), entry in per.items():
+            avg = entry['sum'] / entry['count'] if entry['count'] else 0.0
+            payload = {
+                'item_id': item_id,
+                'avg': avg,
+                'count': entry['count'],
+                'dist': entry['dist'],
+            }
+            (round1 if round_ == '1' else round2).append(payload)
         return {'round1': round1, 'round2': round2}
     finally:
         conn.close()

@@ -70,13 +70,9 @@
     if (mode === 'summary') {
       ratingCard.hidden = true;
       closedCard.hidden = false;
-      const yourVote = localVotes[`${phase}:${item.id}`];
-      const reminder = node.querySelector('.your-vote');
-      if (yourVote) {
-        reminder.textContent = `You voted ${yourVote}.`;
-      } else {
-        reminder.textContent = 'You did not vote on this one.';
-      }
+      // Intentionally no per-voter rating displayed here — keeps individual
+      // votes private (a teen's screen could be glanced at by neighbors).
+      // The projector shows the class-wide histogram and mean.
     } else {
       const buttons = node.querySelectorAll('.rating-btn');
       buttons.forEach((btn) => {

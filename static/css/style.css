@@ -234,14 +234,6 @@ body.voter {
   font-weight: 700;
   color: var(--c-text);
 }
-.your-vote {
-  margin: 0 0 0.5rem;
-  font-size: 1.55rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--c-accent);
-  font-feature-settings: "tnum";
-}
 .closed-hint {
   margin: 0;
   font-size: 0.95rem;
@@ -363,49 +355,103 @@ body.projector {
   font-style: italic;
 }
 
-/* meter (Round 1) */
-.stage-meter {
+/* histogram card (replaces the single-mean meter) */
+.hist-card {
   background: var(--c-surface-dark);
   border-radius: var(--radius);
-  padding: 1.2rem 1.4rem;
+  padding: 1.2rem 1.4rem 1.4rem;
+}
+.hist-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.9rem;
+  flex-wrap: wrap;
 }
 .meter-prompt {
-  margin: 0 0 0.7rem;
+  margin: 0;
   font-size: 1rem;
   color: var(--c-muted-dark);
 }
-.meter-track {
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 999px;
-  height: 56px;
-  width: 100%;
-  position: relative;
-  overflow: hidden;
-}
-.meter-track.small { height: 24px; }
-.meter-fill {
-  height: 100%;
-  border-radius: 999px;
-  transition: width 0.6s var(--ease);
-}
-.meter-fill.r1 { background: linear-gradient(90deg, #f97316, #fb923c); }
-.meter-fill.r2 { background: linear-gradient(90deg, #34a853, #6ee7a4); }
-.meter-readout {
-  margin: 0.85rem 0 0;
+.hist-mean {
   display: flex;
   align-items: baseline;
-  gap: 0.9rem;
+  gap: 0.55rem;
 }
-.big-num {
-  font-size: 3rem;
+.hist-mean-num {
+  font-size: 2.4rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--c-text-dark);
   font-feature-settings: "tnum";
+  line-height: 1;
 }
-.meter-meta {
+.hist-mean-label {
+  font-size: 0.9rem;
   color: var(--c-muted-dark);
+}
+
+.histogram {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.55rem;
+  height: 200px;
+  align-items: end;
+}
+.hist-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  position: relative;
+}
+.hist-count {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--c-text-dark);
+  margin-bottom: 0.35rem;
+  font-feature-settings: "tnum";
+  line-height: 1;
+}
+.hist-bar {
+  width: 78%;
+  min-height: 6px;
+  border-radius: 8px 8px 0 0;
+  transition: height 0.5s var(--ease);
+  background: rgba(255, 255, 255, 0.08);
+}
+.hist-bar.r1 { background: linear-gradient(180deg, #fb923c, #f97316); }
+.hist-bar.r2 { background: linear-gradient(180deg, #6ee7a4, #34a853); }
+.hist-label {
+  margin-top: 0.45rem;
   font-size: 0.95rem;
+  color: var(--c-muted-dark);
+  font-weight: 600;
+  font-feature-settings: "tnum";
+}
+
+.hist-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+.hist-row-label {
+  margin: 0 0 0.6rem;
+  font-size: 0.95rem;
+  color: var(--c-muted-dark);
+  font-weight: 600;
+}
+.hist-row .histogram {
+  height: 130px;
+}
+
+.meter-meta {
+  margin: 0.7rem 0 0;
+  color: var(--c-muted-dark);
+  font-size: 0.9rem;
+  font-style: italic;
 }
 
 /* compare (Round 2) */
@@ -541,36 +587,42 @@ body.projector {
 /* done stage */
 .done-stage h1 { font-size: 2.4rem; }
 .done-row {
-  margin: 1.1rem 0;
-  padding-bottom: 1rem;
+  margin: 1.4rem 0 1.6rem;
+  padding-bottom: 1.2rem;
   border-bottom: 1px solid var(--c-divider-dark);
 }
 .done-title {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 1.4rem;
+  font-size: 1.45rem;
   font-weight: 600;
-  margin-bottom: 0.55rem;
+  margin-bottom: 0.7rem;
   gap: 0.5rem;
   flex-wrap: wrap;
 }
-.bar-mini-row {
+.done-grid {
   display: grid;
-  grid-template-columns: 50px 1fr 64px;
-  gap: 0.7rem;
-  align-items: center;
-  margin: 0.35rem 0;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2rem;
 }
-.bar-mini-label {
-  color: var(--c-muted-dark);
-  font-weight: 700;
+.done-col {
+  background: var(--c-surface-dark);
+  border-radius: var(--radius);
+  padding: 0.8rem 1rem 1rem;
+}
+.done-col-label {
+  margin: 0 0 0.45rem;
   font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--c-muted-dark);
 }
-.bar-mini-num {
-  text-align: right;
-  font-weight: 700;
-  font-feature-settings: "tnum";
+.done-col .histogram { height: 110px; gap: 0.4rem; }
+.done-col .hist-count { font-size: 0.85rem; }
+.done-col .hist-label { font-size: 0.8rem; margin-top: 0.3rem; }
+
+@media (max-width: 1000px) {
+  .done-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 1000px) {
