@@ -255,7 +255,7 @@ body.voter {
 .done-msg p { margin: 0; font-size: 1.1rem; }
 
 /* ====================================================== */
-/* PROJECTOR (large screen)                               */
+/* PROJECTOR + CONTROL (unified admin/results screen)     */
 /* ====================================================== */
 body.projector {
   background: var(--c-bg-dark);
@@ -263,10 +263,164 @@ body.projector {
   min-height: 100vh;
   font-size: 18px;
 }
+
+/* sticky top control bar — admin merged in */
+.control-bar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid var(--c-divider-dark);
+  padding: 0.85rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+.control-state {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-size: 1rem;
+  color: var(--c-muted-dark);
+  flex-wrap: wrap;
+}
+.cb-phase {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  color: var(--c-accent-dark);
+  font-size: 0.9rem;
+}
+.cb-phase.phase-round1 { color: #fb923c; }
+.cb-phase.phase-round2 { color: #6ee7a4; }
+.cb-phase.phase-done   { color: var(--c-accent-dark); }
+.cb-divider { color: var(--c-divider-dark); }
+.cb-progress {
+  font-weight: 600;
+  color: var(--c-text-dark);
+}
+.cb-counts {
+  color: var(--c-muted-dark);
+  font-size: 0.9rem;
+  font-feature-settings: "tnum";
+}
+.control-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+.cb-btn {
+  padding: 0.7rem 1.2rem;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.18s var(--ease), transform 0.12s var(--ease), opacity 0.18s var(--ease);
+  -webkit-tap-highlight-color: transparent;
+}
+.cb-btn:active { transform: scale(0.97); }
+.cb-btn.next {
+  background: var(--c-accent);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(0, 113, 227, 0.35);
+}
+.cb-btn.next:hover { background: #1a7eea; }
+.cb-btn.next:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+.cb-btn.back {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--c-text-dark);
+}
+.cb-btn.back:hover { background: rgba(255, 255, 255, 0.12); }
+.cb-btn.ghost {
+  background: transparent;
+  color: var(--c-muted-dark);
+  border-color: var(--c-divider-dark);
+}
+.cb-btn.ghost:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--c-text-dark);
+}
+.cb-btn.danger {
+  color: #ff8a80;
+  border-color: rgba(255, 138, 128, 0.25);
+}
+.cb-btn.danger:hover {
+  background: rgba(255, 138, 128, 0.08);
+  color: #ff9a8d;
+}
+
 .projector-root {
   padding: 1.6rem 2.4rem 2.4rem;
   max-width: 1800px;
   margin: 0 auto;
+}
+
+/* QR overlay — fullscreen modal */
+.qr-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.94);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.25s var(--ease);
+}
+.qr-overlay-content {
+  text-align: center;
+  color: var(--c-text-dark);
+  padding: 2rem;
+}
+.qr-overlay-label {
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 1.5rem;
+}
+.qr-overlay-img {
+  width: 480px;
+  max-width: 70vmin;
+  height: auto;
+  background: #fff;
+  padding: 1.4rem;
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  display: block;
+  margin: 0 auto;
+}
+.qr-overlay-url {
+  font-size: 1.2rem;
+  margin: 1.5rem 0 0;
+  color: var(--c-muted-dark);
+  font-family: -apple-system, "SF Mono", Menlo, monospace;
+}
+.qr-close {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 1px solid var(--c-divider-dark);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--c-text-dark);
+  font-size: 1.3rem;
+  cursor: pointer;
+}
+.qr-close:hover { background: rgba(255, 255, 255, 0.14); }
+
+@media (max-width: 700px) {
+  .control-bar { padding: 0.7rem 1rem; gap: 0.7rem; }
+  .control-state { font-size: 0.85rem; gap: 0.45rem; }
+  .control-actions { width: 100%; }
+  .cb-btn { flex: 1; padding: 0.7rem 0.5rem; font-size: 0.9rem; }
+  .projector-root { padding: 1rem 1rem 2rem; }
 }
 
 .stage {

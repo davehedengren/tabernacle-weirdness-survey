@@ -81,19 +81,26 @@ def voter():
     return render_template('voter.html')
 
 
-@app.route('/results')
-def results():
-    return render_template('results.html')
-
-
-@app.route('/admin')
-def admin():
+def _render_stage():
+    """Unified projector + admin view. Same URL drives both -- the teacher
+    can control flow from any open instance (phone, laptop, or TV)."""
     voter_url = request.host_url.rstrip('/') + '/'
     img = qrcode.make(voter_url)
     buf = io.BytesIO()
     img.save(buf, format='PNG')
     qr_b64 = base64.b64encode(buf.getvalue()).decode('ascii')
-    return render_template('admin.html', voter_url=voter_url, qr_b64=qr_b64)
+    return render_template('results.html', voter_url=voter_url, qr_b64=qr_b64)
+
+
+@app.route('/results')
+def results():
+    return _render_stage()
+
+
+@app.route('/admin')
+def admin():
+    # Backwards-compatible alias. /admin and /results render the same UI.
+    return _render_stage()
 
 
 @app.route('/api/items')

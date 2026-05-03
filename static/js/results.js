@@ -1,6 +1,87 @@
 (function () {
   const root = document.getElementById('projector-root');
 
+  // ----- Control bar (merged admin) -----
+  const cbPhase = document.getElementById('cb-phase');
+  const cbProgress = document.getElementById('cb-progress');
+  const cbCounts = document.getElementById('cb-counts');
+  const cbNext = document.getElementById('cb-next');
+  const cbPrev = document.getElementById('cb-prev');
+  const cbQr = document.getElementById('cb-qr');
+  const cbReset = document.getElementById('cb-reset');
+  const qrOverlay = document.getElementById('qr-overlay');
+  const qrClose = document.getElementById('qr-close');
+
+  function phaseLabel(phase, mode) {
+    if (phase === 'round1') return mode === 'summary' ? 'R1 · summary' : 'R1 · voting';
+    if (phase === 'round2') return mode === 'summary' ? 'R2 · summary' : 'R2 · voting';
+    return 'DONE';
+  }
+  function nextLabel(state) {
+    if (state.phase === 'done') return 'At end';
+    if (state.mode === 'voting') return 'Close voting';
+    if (state.phase === 'round1') {
+      if (state.current_item_index < state.total_items) return 'Next →';
+      return 'Start Round 2';
+    }
+    if (state.phase === 'round2') {
+      if (state.current_item_index < state.total_items) return 'Next →';
+      return 'Final summary';
+    }
+    return 'Next →';
+  }
+
+  function updateControlBar(state, counts) {
+    cbPhase.textContent = phaseLabel(state.phase, state.mode);
+    cbPhase.className = `cb-phase phase-${state.phase} mode-${state.mode}`;
+    if (state.current_item) {
+      cbProgress.textContent = `${state.current_item.title} (${state.current_item_index}/${state.total_items})`;
+    } else {
+      cbProgress.textContent = `${state.total_items} items total`;
+    }
+    const inVote = (state.phase === 'round1' || state.phase === 'round2') && state.mode === 'voting';
+    cbCounts.textContent = inVote
+      ? `${counts.current_item} on this · R1 ${counts.round1_total} · R2 ${counts.round2_total}`
+      : `R1 ${counts.round1_total} · R2 ${counts.round2_total}`;
+    cbNext.textContent = nextLabel(state);
+    cbNext.disabled = state.phase === 'done';
+  }
+
+  async function api(method, url, body) {
+    const opts = { method };
+    if (body !== undefined) {
+      opts.headers = { 'Content-Type': 'application/json' };
+      opts.body = JSON.stringify(body);
+    }
+    return fetch(url, opts);
+  }
+
+  cbNext.addEventListener('click', async () => { await api('POST', '/api/next'); tick(); });
+  cbPrev.addEventListener('click', async () => { await api('POST', '/api/prev'); tick(); });
+  cbReset.addEventListener('click', async () => {
+    if (!confirm('Erase ALL votes and return to Round 1, item 1, voting? This cannot be undone.')) return;
+    await api('POST', '/api/reset');
+    tick();
+  });
+  cbQr.addEventListener('click', () => { qrOverlay.hidden = false; });
+  qrClose.addEventListener('click', () => { qrOverlay.hidden = true; });
+  qrOverlay.addEventListener('click', (e) => {
+    if (e.target === qrOverlay) qrOverlay.hidden = true;
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !qrOverlay.hidden) qrOverlay.hidden = true;
+    // Spacebar / right arrow = next; left arrow = back. Useful with a
+    // presentation remote.
+    if (qrOverlay.hidden && (e.key === ' ' || e.key === 'ArrowRight' || e.key === 'PageDown')) {
+      e.preventDefault();
+      cbNext.click();
+    }
+    if (qrOverlay.hidden && (e.key === 'ArrowLeft' || e.key === 'PageUp')) {
+      e.preventDefault();
+      cbPrev.click();
+    }
+  });
+
   function escapeHtml(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -243,12 +324,15 @@
 
   async function tick() {
     try {
-      const [stateRes, resultsRes] = await Promise.all([
+      const [stateRes, resultsRes, countsRes] = await Promise.all([
         fetch('/api/state'),
         fetch('/api/results'),
+        fetch('/api/voter_count'),
       ]);
       const state = await stateRes.json();
       const results = await resultsRes.json();
+      const counts = await countsRes.json();
+      updateControlBar(state, counts);
 
       // Build a stable key for the *layout*. Anything that requires
       // tearing down the DOM (different item, different phase, different

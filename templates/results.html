@@ -1,10 +1,36 @@
 {% extends "base.html" %}
-{% block title %}Results{% endblock %}
+{% block title %}Tabernacle Survey{% endblock %}
 {% block body_class %}projector{% endblock %}
 {% block content %}
+<header class="control-bar">
+  <div class="control-state">
+    <span class="cb-phase" id="cb-phase">…</span>
+    <span class="cb-divider">·</span>
+    <span class="cb-progress" id="cb-progress">…</span>
+    <span class="cb-divider">·</span>
+    <span class="cb-counts" id="cb-counts">…</span>
+  </div>
+  <div class="control-actions">
+    <button class="cb-btn back" id="cb-prev">← Back</button>
+    <button class="cb-btn next" id="cb-next">Next →</button>
+    <button class="cb-btn ghost" id="cb-qr" title="Show QR code">QR</button>
+    <button class="cb-btn ghost danger" id="cb-reset" title="Reset all votes">Reset</button>
+  </div>
+</header>
+
 <main id="projector-root" class="projector-root">
-  <p class="loading">Loading...</p>
+  <p class="loading">Loading…</p>
 </main>
+
+<div id="qr-overlay" class="qr-overlay" hidden>
+  <button class="qr-close" id="qr-close" aria-label="Close">✕</button>
+  <div class="qr-overlay-content">
+    <p class="qr-overlay-label">Scan to vote</p>
+    <img class="qr-overlay-img" alt="QR code"
+         src="data:image/png;base64,{{ qr_b64 }}">
+    <p class="qr-overlay-url">{{ voter_url }}</p>
+  </div>
+</div>
 {% endblock %}
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/results.js') }}"></script>
