@@ -19,14 +19,11 @@
   }
   function nextLabel(state) {
     if (state.phase === 'done') return 'At end';
-    if (state.mode === 'voting') return 'Close voting';
-    if (state.phase === 'round1') {
-      if (state.current_item_index < state.total_items) return 'Next →';
-      return 'Start Round 2';
-    }
+    if (state.mode === 'voting') return 'Close voting →';
+    if (state.phase === 'round1') return 'Reveal meaning →';
     if (state.phase === 'round2') {
-      if (state.current_item_index < state.total_items) return 'Next →';
-      return 'Final summary';
+      if (state.current_item_index < state.total_items) return 'Next item →';
+      return 'Final summary →';
     }
     return 'Next →';
   }

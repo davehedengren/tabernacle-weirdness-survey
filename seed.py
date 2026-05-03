@@ -34,20 +34,18 @@ ITEMS = [
             "one to another; even to the mercy seatward were the faces of "
             "the cherubims."
         ),
-        'context_scripture_ref': 'Exodus 25:20–22',
+        'context_scripture_ref': 'Romans 3:25',
         'context_scripture_text': (
-            "And the cherubims shall stretch forth their wings on high, "
-            "covering the mercy seat with their wings, and their faces shall "
-            "look one to another; toward the mercy seat shall the faces of "
-            "the cherubims be. And thou shalt put the mercy seat above upon "
-            "the ark; and in the ark thou shalt put the testimony that I "
-            "shall give thee. And there I will meet with thee, and I will "
-            "commune with thee from above the mercy seat, from between the "
-            "two cherubims which are upon the ark of the testimony, of all "
-            "things which I will give thee in commandment unto the children "
-            "of Israel."
+            "Whom God hath set forth to be a propitiation through faith in "
+            "his blood, to declare his righteousness for the remission of "
+            "sins that are past, through the forbearance of God."
         ),
-        'meaning': "God's presence — the place where He met with His people.",
+        'meaning': (
+            "Christ Himself is the mercy seat. The Greek word Paul uses for "
+            "\"propitiation\" (hilastērion) is the exact word the Greek Old "
+            "Testament uses for the lid of the Ark. Christ is where God "
+            "meets us."
+        ),
         'image_url': '/static/images/survey/v2_01_ark_of_the_covenant.png',
     },
     {
@@ -58,16 +56,21 @@ ITEMS = [
             "before the vail: And he burnt sweet incense thereon; as the Lord "
             "commanded Moses."
         ),
-        'context_scripture_ref': 'Revelation 8:3–4',
+        'context_scripture_ref': 'Revelation 8:3–4; Hebrews 7:25',
         'context_scripture_text': (
             "And another angel came and stood at the altar, having a golden "
-            "censer; and there was given unto him much incense, that he should "
-            "offer it with the prayers of all saints upon the golden altar "
-            "which was before the throne. And the smoke of the incense, which "
-            "came with the prayers of the saints, ascended up before God out "
-            "of the angel's hand."
+            "censer; and there was given unto him much incense, that he "
+            "should offer it with the prayers of all saints upon the golden "
+            "altar which was before the throne. And the smoke of the incense, "
+            "which came with the prayers of the saints, ascended up before "
+            "God out of the angel's hand. ...Wherefore he is able also to "
+            "save them to the uttermost that come unto God by him, seeing "
+            "he ever liveth to make intercession for them."
         ),
-        'meaning': "Prayer — the prayers of the saints rising before God.",
+        'meaning': (
+            "Prayer — the prayers of the saints rise to God like incense, "
+            "and Christ ever lives to carry them up for us."
+        ),
         'image_url': '/static/images/survey/v2_02_altar_of_incense.png',
     },
     {
@@ -117,14 +120,20 @@ ITEMS = [
             "brass. And he put the staves into the rings on the sides of the "
             "altar, to bear it withal; he made the altar hollow with boards."
         ),
-        'context_scripture_ref': 'Hebrews 10:11–12',
+        'context_scripture_ref': 'John 1:29; Hebrews 10:11–12',
         'context_scripture_text': (
-            "And every priest standeth daily ministering and offering "
+            "The next day John seeth Jesus coming unto him, and saith, "
+            "Behold the Lamb of God, which taketh away the sin of the world! "
+            "...And every priest standeth daily ministering and offering "
             "oftentimes the same sacrifices, which can never take away sins: "
             "But this man, after he had offered one sacrifice for sins for "
             "ever, sat down on the right hand of God."
         ),
-        'meaning': "Sacrifice — every animal a rehearsal of Christ's atonement.",
+        'meaning': (
+            "Sacrifice — every animal pointed forward to THE Lamb. The "
+            "priests stood daily because the work was never done. Christ "
+            "sat down. It is finished."
+        ),
         'image_url': '/static/images/survey/v2_04_altar_of_sacrifice.png',
     },
     {
@@ -143,15 +152,20 @@ ITEMS = [
             "shall be a statute for ever to them, even to him and to his seed "
             "throughout their generations."
         ),
-        'context_scripture_ref': 'Isaiah 1:16; Jeremiah 33:8',
+        'context_scripture_ref': 'Ephesians 5:25–26; Hebrews 10:22',
         'context_scripture_text': (
-            "Wash you, make you clean; put away the evil of your doings from "
-            "before mine eyes; cease to do evil. ...And I will cleanse them "
-            "from all their iniquity, whereby they have sinned against me; "
-            "and I will pardon all their iniquities, whereby they have sinned, "
-            "and whereby they have transgressed against me."
+            "Husbands, love your wives, even as Christ also loved the church, "
+            "and gave himself for it; That he might sanctify and cleanse it "
+            "with the washing of water by the word. ...Let us draw near with "
+            "a true heart in full assurance of faith, having our hearts "
+            "sprinkled from an evil conscience, and our bodies washed with "
+            "pure water."
         ),
-        'meaning': "Cleansing — being made pure to come before God.",
+        'meaning': (
+            "Cleansing — Christ washes us to make us fit to come before God. "
+            "Baptism, sacrament, the Holy Ghost — the laver pointed forward "
+            "to Him."
+        ),
         'image_url': '/static/images/survey/v2_05_laver.png',
     },
     {
@@ -199,17 +213,16 @@ ITEMS = [
             "house of Levi was budded, and brought forth buds, and bloomed "
             "blossoms, and yielded almonds."
         ),
-        'context_scripture_ref': 'Hebrews 9:4; 1 Corinthians 15:20',
+        'context_scripture_ref': 'John 11:25; 1 Corinthians 15:20',
         'context_scripture_text': (
-            "Which had the golden censer, and the ark of the covenant "
-            "overlaid round about with gold, wherein was the golden pot that "
-            "had manna, and Aaron's rod that budded, and the tables of the "
-            "covenant. ...But now is Christ risen from the dead, and become "
-            "the firstfruits of them that slept."
+            "Jesus said unto her, I am the resurrection, and the life: he "
+            "that believeth in me, though he were dead, yet shall he live. "
+            "...But now is Christ risen from the dead, and become the "
+            "firstfruits of them that slept."
         ),
         'meaning': (
-            "Resurrection — dead wood blossomed overnight; the chosen High "
-            "Priest is risen and lives."
+            "Resurrection — dead wood blossomed overnight. Christ is the "
+            "resurrection — the chosen High Priest who lives."
         ),
         'image_url': '/static/images/survey/v2_aarons_rod.png',
     },

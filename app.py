@@ -130,13 +130,20 @@ def api_state():
 
 @app.route('/api/next', methods=['POST'])
 def api_next():
-    """Advance through the state machine.
+    """Advance through the per-item state machine.
 
-    Each item has two stops: voting and summary. So Next from 'voting'
-    closes voting (lock the tally for discussion); Next from 'summary'
-    advances to the next item's voting screen. Crossing rounds (round1
-    last summary -> round2 first voting) is a single Next click. Done
-    is the absorbing state.
+    Each item completes its full arc (R1 vote -> R1 summary -> R2 vote
+    -> R2 summary) before the next item begins. So the meaning is fresh
+    in the kids' minds when they re-rate, and the "did the meaning
+    change me?" conversation happens right after the shift is revealed.
+
+    Sequence per item:
+      (round1, n, voting)   ->  (round1, n, summary)   [Close voting]
+      (round1, n, summary)  ->  (round2, n, voting)    [Reveal meaning]
+      (round2, n, voting)   ->  (round2, n, summary)   [Close voting]
+      (round2, n, summary)  ->  (round1, n+1, voting)  [Next item]
+    Final:
+      (round2, total, summary) -> done
     """
     items = _items()
     total = len(items)
@@ -145,17 +152,14 @@ def api_next():
     if phase == 'round1':
         if mode == 'voting':
             _set_state('round1', idx, 'summary')
-        else:  # summary
-            if idx < total:
-                _set_state('round1', idx + 1, 'voting')
-            else:
-                _set_state('round2', 1, 'voting')
+        else:  # round1 summary -> stay on this item, switch to round 2
+            _set_state('round2', idx, 'voting')
     elif phase == 'round2':
         if mode == 'voting':
             _set_state('round2', idx, 'summary')
-        else:
+        else:  # round2 summary -> next item's round 1, or done
             if idx < total:
-                _set_state('round2', idx + 1, 'voting')
+                _set_state('round1', idx + 1, 'voting')
             else:
                 _set_state('done', 0, 'voting')
     # done: no-op
@@ -164,6 +168,7 @@ def api_next():
 
 @app.route('/api/prev', methods=['POST'])
 def api_prev():
+    """Mirror of /api/next — unwinds the per-item cycle cleanly."""
     items = _items()
     total = len(items)
     phase, idx, mode = _get_state()
@@ -172,15 +177,15 @@ def api_prev():
         if mode == 'summary':
             _set_state('round1', idx, 'voting')
         elif idx > 1:
-            _set_state('round1', idx - 1, 'summary')
+            # back from round1/n/voting -> previous item's round2 summary
+            _set_state('round2', idx - 1, 'summary')
         # round1/1/voting: stay
     elif phase == 'round2':
         if mode == 'summary':
             _set_state('round2', idx, 'voting')
-        elif idx > 1:
-            _set_state('round2', idx - 1, 'summary')
         else:
-            _set_state('round1', total, 'summary')
+            # back from round2/n/voting -> same item's round1 summary
+            _set_state('round1', idx, 'summary')
     elif phase == 'done':
         _set_state('round2', total, 'summary')
     return jsonify(_state_payload())
