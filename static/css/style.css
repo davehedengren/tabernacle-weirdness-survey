@@ -360,7 +360,9 @@ body.projector {
   margin: 0 auto;
 }
 
-/* QR overlay — fullscreen modal */
+/* QR overlay — fullscreen modal.
+   The [hidden] override is required because `display: flex` would
+   otherwise win over the implicit `[hidden] { display: none }` rule. */
 .qr-overlay {
   position: fixed;
   inset: 0;
@@ -372,6 +374,7 @@ body.projector {
   justify-content: center;
   animation: fadeIn 0.25s var(--ease);
 }
+.qr-overlay[hidden] { display: none; }
 .qr-overlay-content {
   text-align: center;
   color: var(--c-text-dark);
